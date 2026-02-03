@@ -5,8 +5,33 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from openpyxl import load_workbook
 
-class FluentPostProcessing():
+
+rows: int = [11,    # Drag Frontwing
+             12,    # Drag Sidepod
+             13,    # Drag Rearwing
+             15,    # Drag Net
+             11,    # Df Frontwing
+             12,    # Df Sidepod
+             13,    # Df Rearwing
+             15,    # Df Net
+             18     # Moment around front axis
+             ]
+
+cols: int = [3,     # Drag Frontwing
+             3,     # Drag Sidepod
+             3,     # Drag Rearwing
+             3,     # Drag Net
+             8,     # Df Frontwing
+             8,     # Df Sidepod
+             8,     # Df Rearwing
+             8,     # Df Net
+             8      # Moment around front axis
+             ]
+
+
+class FluentPostProcesser():
     def __init__(self, fluent_exe_path: Path, case_file_path: Path):
         self.fluent_exe_path = fluent_exe_path
         self.case_file_path = case_file_path
@@ -121,4 +146,28 @@ class FluentPostProcessing():
             print(f"\n Error occoured in process: (Code {rc})")
 
     def get_excel_data(self):
-        pass
+        self.forces = [100, 200, 300, 600, 100, 200, 300, 600, 700]
+
+    def write_to_forcesheet(self):
+        self.force_book = load_workbook("aero force sheet.xlsx")
+        self.force_sheet = self.force_book.active
+        '''
+            forces must be in following format:
+                [Drag Frontwing,
+                 Drag Sidepod,
+                 Drag Rearwing,
+                 Drag Net,
+                 Downforce Frontwing,
+                 Downforce Sidepod,
+                 Downforce Rearwing,
+                 Downforce Net,
+                 Moment around front axis]
+        '''
+        assert len(self.forces) == len(rows) == len(cols)
+
+        assert self.force_sheet["A1"].value == "v1.0"
+
+        for i, row in enumerate(rows):
+            self.force_sheet.cell(row=rows[i], column=cols[i], value=self.forces[i])
+        
+        self.force_book.save("aero force sheet.xlsx")
