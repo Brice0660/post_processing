@@ -32,10 +32,10 @@ cols: int = [3,     # Drag Frontwing
 
 
 class FluentPostProcesser():
-    def __init__(self, fluent_exe_path: Path, case_file_path: Path):
+    def __init__(self, fluent_exe_path: Path, case_folder_path: Path):
         self.fluent_exe_path = fluent_exe_path
-        self.case_file_path = case_file_path
-        self.work_dir = Path(self.case_file_path.parent)
+        self.work_dir = Path(case_folder_path)
+        self.case_file_path = list(case_folder_path.rglob("*.cas.h5"))[0]
         self.out_dir = self.work_dir / "Processed"
         self.out_dir.mkdir(parents=True, exist_ok=True)
         self.jou_path = self.out_dir / "sequence_30_images.jou"
