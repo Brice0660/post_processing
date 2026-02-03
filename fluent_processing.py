@@ -10,12 +10,12 @@ class FluentPostProcessing():
     def __init__(self, fluent_exe_path: Path, case_file_path: Path):
         self.fluent_exe_path = fluent_exe_path
         self.case_file_path = case_file_path
-        self.work_dir = self.case_file_path.parent
-        self.out_dir = self.work_dir / "images"
-        self.jou_path = self.work_dir / "sequence_30_images.jou"
+        self.work_dir = Path(self.case_file_path.parent)
+        self.out_dir = self.work_dir / "Processed"
+        self.out_dir.mkdir(parents=True, exist_ok=True)
+        self.jou_path = self.out_dir / "sequence_30_images.jou"
     
     def create_jou_content(self):
-        self.out_dir.mkdir(parents=True, exist_ok=True)
         # --- Parameters of sequence ---
         start_z = 0.0
         end_z = 0.760  # 740 mm
@@ -31,57 +31,65 @@ class FluentPostProcessing():
             /file/confirm-overwrite? no
             /display/set-window 1
             /views/camera/projection orthographic
+            /display/display/surface-mesh symmetry()
+            /views/auto-scale
+            /views/camera/target 0.4 0 1
+            /views/camera/position 0.4 1 1
+            /views/camera/up-vector 0 0 1
+            /views/camera/zoom-camera 9
             """
 
         for i, z in enumerate(z_positions):
             s_name = f"plane_z_{i:02d}"
-            img_name = f"images/side_{i:02d}.png"
+            img_vel = f"Processed/Images/side_vel_{i:02d}.png"
+            img_pressure = f"Processed/Images/side_pressure_{i:02d}.png"
             
             jou_content += f"""
                 ; --- Image {i+1}/{num_images_y} at Z = {z:.4f} ---
                 /surface/plane-surface {s_name} z {z:.4f}
                 /display/set/contours surfaces {s_name} ()
-                /display/contour/velocity-magnitude 0 35
-                /views/auto-scale
-                /views/camera/target 0 0 0
-                /views/camera/position 0 1 0
-                /views/camera/up-vector 0 0 1
-                /views/camera/zoom-camera 6
-                /views/camera/dolly-camera 0.2 1.5 0
-                /display/save-picture "{img_name}"
+                /display/contour/velocity-magnitude 0 35   
+                /display/save-picture "{img_vel}"
+                /display/contour/total-pressure -300 350
+                /display/save-picture "{img_pressure}"
                 /surface/delete {s_name}
                 """
 
         jou_content += f"""
             views/apply-mirror-planes symmetry ()
-            """      
+            /display/display/surface-mesh Inlet()
+            /views/auto-scale
+            /views/camera/target 0 0 0.8
+            /views/camera/position 1 0 0.8
+            /views/camera/up-vector 0 0 1
+            /views/camera/zoom-camera 4
+            """       
 
         for i, y in enumerate(x_positions):
             s_name = f"plane_x_{i:02d}"
-            img_name = f"images/front_{i:02d}.png"
+            img_vel = f"Processed/Images/front_vel_{i:02d}.png"
+            img_pressure = f"Processed/Images/front_pressure_{i:02d}.png"
+        
             
             jou_content += f"""
                 ; --- Image {i+1}/{num_images_x} at x = {y:.4f} ---
                 /surface/plane-surface {s_name} y {y:.4f}
                 /display/set/contours surfaces {s_name} ()
                 /display/contour/velocity-magnitude 0 35
-                /views/camera/target 0 0 0
-                /views/camera/position 1 0 0
-                /views/camera/up-vector 0 0 1
-                /views/auto-scale
-                /views/camera/zoom-camera 4
-                /views/camera/target 0 0 0.7
-                /display/save-picture "{img_name}"
+                /display/save-picture "{img_vel}"
+                /display/contour/total-pressure -300 300
+                /display/save-picture "{img_pressure}"
                 /surface/delete {s_name}
                 """
             
-
-
         jou_content += "\n/exit yes"
         
         self.jou_path.write_text(jou_content, encoding="utf-8")
 
     def create_images(self, timeout_s = 2000):
+        print("Running Fluent (Mode Batch)...")
+        self.images_dir = self.out_dir / "Images"
+        self.images_dir.mkdir(parents=True, exist_ok=True)
         cmd = [str(self.fluent_exe_path), "3d", "-t8", "-gu", "-i", str(self.jou_path)]
         start = time.time()
         proc = subprocess.Popen(
@@ -111,3 +119,6 @@ class FluentPostProcessing():
             print(f"\n Images saved in: {self.out_dir}")
         else:
             print(f"\n Error occoured in process: (Code {rc})")
+
+    def get_excel_data(self):
+        pass
