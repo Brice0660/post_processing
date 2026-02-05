@@ -1,5 +1,5 @@
 ; 2047
-/file/read-case-data "C:/Jon/BFH/BRT/26/Aero/CFD/New_side_V1/New_side_V1.cas.h5"
+            /file/read-case-data "C:/Jon/BFH/BRT/26/Aero/CFD/New_side_V1/New_side_V1.cas.h5"
             /file/set-batch-options no yes yes no
             /display/set-window 1
             /views/camera/projection orthographic

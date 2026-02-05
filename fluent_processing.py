@@ -50,7 +50,7 @@ class FluentPostProcesser():
         self.case_file_path = list(case_folder_path.rglob("*.cas.h5"))[0]
         self.out_dir = self.work_dir / "processed"
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        self.jou_path = os.path.abspath(r"data\v0.1_sequence.jou")
+        self.jou_path = Path(os.path.abspath(r"data\v0.1_sequence.jou"))
         self.images_dir = self.out_dir / "images"
         self.images_dir.mkdir(parents=True, exist_ok=True)
         self.front_vel_dir = self.images_dir / "front_vel"
@@ -78,7 +78,8 @@ class FluentPostProcesser():
         # --- creating jou content ---
 
 
-        jou_content = f"""/file/read-case-data "{self.case_file_path.as_posix()}"
+        jou_content = f"""; 2047
+            /file/read-case-data "{self.case_file_path.as_posix()}"
             /file/set-batch-options no yes yes no
             /display/set-window 1
             /views/camera/projection orthographic

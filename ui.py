@@ -56,6 +56,7 @@ class FluentProcessingUI():
         self.lb_progress = tk.Label(self.root, text="Initialising Fluent Ansys...")
         self.lb_progress.grid(row=2, column=3)
         self.root.update_idletasks()
+        fluent_processer.create_jou_content()
         fluent_processer.run_jou_file()
         fluent_processer.get_excel_data()
         self.lb_progress.config(text=f"done!")
